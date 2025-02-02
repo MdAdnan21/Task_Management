@@ -25,7 +25,7 @@ function useRefreshToken() {
       console.log(error);
       await session.signOut();
       void navigate({
-        to: '/login',
+        to: '/auth/login',
       });
     }
   };

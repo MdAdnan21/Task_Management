@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import { getErrorMessage } from '../utils';
+import { getErrorMessage } from '../error';
 import { axiosPrivate as axios, type TSession } from './useAxios';
 import { useNavigate } from '@tanstack/react-router';
 
@@ -34,7 +34,7 @@ export const useSession = () => {
       });
       queryClient.setQueryData(userSessionKey, null);
       void navigate({
-        to: '/login',
+        to: '/auth/login',
       });
     } catch (e) {
       toast.error(getErrorMessage(e));

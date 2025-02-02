@@ -1,21 +1,24 @@
-import { QueryClient } from '@tanstack/react-query';
-import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
-
+import { createRootRoute, Outlet, useNavigate } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { Toaster } from 'sonner';
-
-interface RootContext {
-  queryClient: QueryClient;
-}
-
-export const Route = createRootRouteWithContext<RootContext>()({
-  component: RootComponent,
+// Create the root route
+export const Route = createRootRoute({
+  component: RootComponents,
 });
 
-function RootComponent() {
+// Root component
+function RootComponents() {
+  const navigate = useNavigate(); // Hook for navigation
+
+  useEffect(() => {
+    // Navigate directly to /auth/login
+    navigate({ to: '/', replace: true });
+  }, [navigate]);
+
   return (
-    <>
-      <Toaster richColors position='bottom-right' />
+    <div>
+      <Toaster richColors />
       <Outlet />
-    </>
+    </div>
   );
 }

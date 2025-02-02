@@ -1,0 +1,32 @@
+{
+  "task": [
+    {
+      "id": "438a",
+      "name": "Practicing Questiion",
+      "duedate": "2025-02-18",
+      "status": "TODO",
+      "category": "WORK"
+    },
+    {
+      "id": "40ed",
+      "name": "Daily Task",
+      "duedate": "2025-02-27",
+      "status": "IN-PROGRESS",
+      "category": "WORK"
+    },
+    {
+      "id": "d8ca",
+      "name": "Daily Task",
+      "duedate": "2025-02-10",
+      "status": "IN-PROGRESS",
+      "category": "WORK"
+    },
+    {
+      "id": "e151",
+      "name": "Practicing Questiion",
+      "duedate": "2025-02-18",
+      "status": "COMPLETED",
+      "category": "PERSONAL"
+    }
+  ]
+}
