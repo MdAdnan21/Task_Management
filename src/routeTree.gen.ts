@@ -13,7 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as DashImport } from './routes/_dash'
 import { Route as AuthImport } from './routes/_auth'
-import { Route as DashIndexImport } from './routes/_dash/index'
+import { Route as DashboardDashIndexImport } from './routes/_dashboard/dash/index'
 import { Route as AuthAuthLoginImport } from './routes/_auth/auth/login'
 
 // Create/Update Routes
@@ -28,10 +28,10 @@ const AuthRoute = AuthImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const DashIndexRoute = DashIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DashRoute,
+const DashboardDashIndexRoute = DashboardDashIndexImport.update({
+  id: '/_dashboard/dash/',
+  path: '/dash/',
+  getParentRoute: () => rootRoute,
 } as any)
 
 const AuthAuthLoginRoute = AuthAuthLoginImport.update({
@@ -58,19 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashImport
       parentRoute: typeof rootRoute
     }
-    '/_dash/': {
-      id: '/_dash/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof DashIndexImport
-      parentRoute: typeof DashImport
-    }
     '/_auth/auth/login': {
       id: '/_auth/auth/login'
       path: '/auth/login'
       fullPath: '/auth/login'
       preLoaderRoute: typeof AuthAuthLoginImport
       parentRoute: typeof AuthImport
+    }
+    '/_dashboard/dash/': {
+      id: '/_dashboard/dash/'
+      path: '/dash'
+      fullPath: '/dash'
+      preLoaderRoute: typeof DashboardDashIndexImport
+      parentRoute: typeof rootRoute
     }
   }
 }
@@ -87,53 +87,50 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
-interface DashRouteChildren {
-  DashIndexRoute: typeof DashIndexRoute
-}
-
-const DashRouteChildren: DashRouteChildren = {
-  DashIndexRoute: DashIndexRoute,
-}
-
-const DashRouteWithChildren = DashRoute._addFileChildren(DashRouteChildren)
-
 export interface FileRoutesByFullPath {
-  '': typeof DashRouteWithChildren
-  '/': typeof DashIndexRoute
+  '': typeof DashRoute
   '/auth/login': typeof AuthAuthLoginRoute
+  '/dash': typeof DashboardDashIndexRoute
 }
 
 export interface FileRoutesByTo {
-  '': typeof AuthRouteWithChildren
-  '/': typeof DashIndexRoute
+  '': typeof DashRoute
   '/auth/login': typeof AuthAuthLoginRoute
+  '/dash': typeof DashboardDashIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_auth': typeof AuthRouteWithChildren
-  '/_dash': typeof DashRouteWithChildren
-  '/_dash/': typeof DashIndexRoute
+  '/_dash': typeof DashRoute
   '/_auth/auth/login': typeof AuthAuthLoginRoute
+  '/_dashboard/dash/': typeof DashboardDashIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/' | '/auth/login'
+  fullPaths: '' | '/auth/login' | '/dash'
   fileRoutesByTo: FileRoutesByTo
-  to: '' | '/' | '/auth/login'
-  id: '__root__' | '/_auth' | '/_dash' | '/_dash/' | '/_auth/auth/login'
+  to: '' | '/auth/login' | '/dash'
+  id:
+    | '__root__'
+    | '/_auth'
+    | '/_dash'
+    | '/_auth/auth/login'
+    | '/_dashboard/dash/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
-  DashRoute: typeof DashRouteWithChildren
+  DashRoute: typeof DashRoute
+  DashboardDashIndexRoute: typeof DashboardDashIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
-  DashRoute: DashRouteWithChildren,
+  DashRoute: DashRoute,
+  DashboardDashIndexRoute: DashboardDashIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -147,7 +144,8 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/_auth",
-        "/_dash"
+        "/_dash",
+        "/_dashboard/dash/"
       ]
     },
     "/_auth": {
@@ -157,18 +155,14 @@ export const routeTree = rootRoute
       ]
     },
     "/_dash": {
-      "filePath": "_dash.tsx",
-      "children": [
-        "/_dash/"
-      ]
-    },
-    "/_dash/": {
-      "filePath": "_dash/index.tsx",
-      "parent": "/_dash"
+      "filePath": "_dash.tsx"
     },
     "/_auth/auth/login": {
       "filePath": "_auth/auth/login.tsx",
       "parent": "/_auth"
+    },
+    "/_dashboard/dash/": {
+      "filePath": "_dashboard/dash/index.tsx"
     }
   }
 }

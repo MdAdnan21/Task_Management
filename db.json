@@ -1,23 +1,9 @@
 {
   "task": [
     {
-      "id": "438a",
-      "name": "Practicing Questiion",
-      "duedate": "2025-02-18",
-      "status": "TODO",
-      "category": "WORK"
-    },
-    {
       "id": "40ed",
       "name": "Daily Task",
       "duedate": "2025-02-27",
-      "status": "IN-PROGRESS",
-      "category": "WORK"
-    },
-    {
-      "id": "d8ca",
-      "name": "Daily Task",
-      "duedate": "2025-02-10",
       "status": "IN-PROGRESS",
       "category": "WORK"
     },
@@ -27,6 +13,44 @@
       "duedate": "2025-02-18",
       "status": "COMPLETED",
       "category": "PERSONAL"
+    },
+    {
+      "id": "3f15",
+      "name": "Cricket is my hooby",
+      "duedate": "2025-02-19",
+      "category": "PERSONAL"
+    },
+    {
+      "id": "d0fd",
+      "name": "movie lover",
+      "duedate": "2025-02-20",
+      "status": "IN-PROGRESS",
+      "description": "datas",
+      "category": "WORK"
+    },
+    {
+      "id": "c983",
+      "name": "Rider bike",
+      "duedate": "2025-02-28",
+      "status": "TODO",
+      "description": "bikes can more Good instead of Car",
+      "category": "WORK"
+    },
+    {
+      "id": "8907",
+      "name": "Foodie lover",
+      "duedate": "2025-02-12",
+      "status": "IN-PROGRESS",
+      "description": "food is essesential",
+      "category": "PERSONAL"
+    },
+    {
+      "id": "6f05",
+      "name": "I Want To Become  a Scientist",
+      "duedate": "2025-02-06",
+      "status": "COMPLETED",
+      "description": "Research And Development",
+      "category": "WORK"
     }
   ]
 }

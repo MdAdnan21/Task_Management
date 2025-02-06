@@ -7,6 +7,7 @@ import ReactDOM from 'react-dom/client';
 
 import { routeTree } from './routeTree.gen';
 
+import { AuthProvider } from './routes/_auth/auth/-components/authContext'; // Import your AuthProvider
 axios.defaults.withCredentials = true;
 
 const queryClient = new QueryClient();
@@ -33,7 +34,11 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        {' '}
+        {/* ✅ Wrap AuthProvider around RouterProvider */}
+        <RouterProvider router={router} />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

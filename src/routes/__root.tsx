@@ -1,20 +1,22 @@
 import { createRootRoute, Outlet, useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
 import { Toaster } from 'sonner';
-// Create the root route
+import { useAuth } from './_auth/auth/-components/authContext';
+import { useEffect } from 'react';
+
 export const Route = createRootRoute({
   component: RootComponents,
 });
 
-// Root component
 function RootComponents() {
-  const navigate = useNavigate(); // Hook for navigation
-
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
   useEffect(() => {
-    // Navigate directly to /auth/login
-    navigate({ to: '/', replace: true });
-  }, [navigate]);
+    if (!loading && !user) {
+      navigate({ to: '/auth/login' });
+    }
+  }, [user, loading, navigate]);
 
+  if (loading) return null;
   return (
     <div>
       <Toaster richColors />

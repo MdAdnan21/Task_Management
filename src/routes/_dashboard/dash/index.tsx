@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { LuSearch } from 'react-icons/lu';
-import ListTableData from './dash/-components/ListTableData';
+import ListTableData from './-components/ListTableData';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +28,13 @@ import { X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import FileUpload from '@/components/global/ImageUploader';
+import { useAuth } from '../../../routes/_auth/auth/-components/authContext';
+import BoardTableData from './-components/BoardTableData';
+import { UserType } from './-components/useFetchData';
+import { Link } from '@tanstack/react-router';
 
 const validator = z.object({
   name: z
@@ -39,61 +46,63 @@ const validator = z.object({
     .min(8, 'Due date must be in a valid format (YYYY-MM-DD)')
     .optional(),
   status: z.enum(['TODO', 'IN-PROGRESS', 'COMPLETED']).optional(),
+  description: z
+    .string()
+    .min(5, 'Description must be at least 5 characters long')
+    .optional(),
   category: z.enum(['WORK', 'PERSONAL']).optional(),
 });
-export const Route = createFileRoute('/_dash/')({
+
+export const Route = createFileRoute('/_dashboard/dash/')({
   component: Index,
   validateSearch: validator,
 });
 
 function Index() {
-  const AddTask = useMutation({
-    mutationKey: ['add-task'],
-    mutationFn: async (val: any) => {
-      const res = await axios.post('http://localhost:3001/task', {
-        name: val?.name,
-        duedate: val?.duedate,
-        status: val?.status,
-        category: val?.category,
-      });
-      return res.data;
-    },
-  });
+  const { user, logout } = useAuth();
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const form = useForm({
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+    watch,
+  } = useForm({
     defaultValues: {
       name: '',
       duedate: '',
-      status: undefined,
-      category: undefined, // Default category
+      status: 'TODO' as 'TODO' | 'IN-PROGRESS' | 'COMPLETED' | undefined,
+      category: 'WORK' as 'WORK' | 'PERSONAL' | undefined,
+      description: '',
     },
     resolver: zodResolver(validator),
   });
 
-  const onSubmit = async (data: any) => {
-    try {
-      await AddTask.mutateAsync({
-        name: data.name,
-        duedate: data.duedate,
-        status: data.status,
-        category: data.category,
-      });
-      form.reset();
-      console.log('Task created successfully');
-    } catch (error) {
+  const AddTask = useMutation({
+    mutationKey: ['add-task'],
+    mutationFn: async (taskData: UserType) => {
+      const res = await axios.post('http://localhost:3001/task', taskData);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('Task created successfully');
+      reset(); // Reset the form after successful submission
+    },
+    onError: (error: any) => {
+      toast.error('Failed to create task');
       console.error('Error creating task:', error);
-    }
+    },
+  });
+
+  const onSubmit = (data: any) => {
+    AddTask.mutate(data); // Submit the form data to the API
   };
-
-  console.log(AddTask.data);
-
-  if (AddTask.isPending) {
-    return <div>Loading...</div>;
-  }
-
-  if (AddTask.isError) {
-    return <div>Error: {AddTask.error?.message}</div>;
-  }
 
   return (
     <div className='p-5 mt-5 space-y-5'>
@@ -103,18 +112,6 @@ function Index() {
           <img src='/login/task_icon.png' alt='Task Icon' className='w-8 h-8' />
           <h1 className='text-2xl font-semibold text-gray-800'>TaskBuddy</h1>
         </div>
-
-        {/* User Info */}
-        <div className='flex items-center gap-x-2'>
-          {/* <img
-            src={FetchData.data?.profileImage || '/default-avatar.png'}
-            alt='User Profile'
-            className='w-10 h-10 rounded-full border border-gray-300'
-          />
-          <p className='text-lg font-medium text-gray-700'>
-            {FetchData.data?.name || 'No Name Available'}
-          </p> */}
-        </div>
       </div>
 
       {/* Tabs & Logout Button */}
@@ -122,33 +119,63 @@ function Index() {
         {/* Tabs Section */}
         <div className='flex-1'>
           <Tabs defaultValue='account' className='w-full'>
-            <TabsList className='p-3 border-b border-gray-200'>
-              <TabsTrigger value='account'>
-                <div className='flex items-center gap-x-2'>
-                  <img
-                    src='/login/Vector1.png'
-                    alt='List Icon'
-                    className='w-4 h-4'
-                  />
-                  <p className='text-lg font-medium'>List</p>
-                </div>
-              </TabsTrigger>
-              <TabsTrigger value='password'>
-                <div className='flex items-center gap-x-2'>
-                  <img
-                    src='/login/Vector.png'
-                    alt='Board Icon'
-                    className='w-4 h-4'
-                  />
-                  <p className='text-lg font-medium'>Board</p>
-                </div>
-              </TabsTrigger>
-            </TabsList>
+            <TabsList className='p-3 border-b border-gray-200 flex justify-between items-center'>
+              {/* Left Side - Tabs */}
+              <div className='flex gap-x-4'>
+                <TabsTrigger value='account'>
+                  <div className='flex items-center gap-x-2'>
+                    <img
+                      src='/login/Vector1.png'
+                      alt='List Icon'
+                      className='w-4 h-4'
+                    />
+                    <p className='text-lg font-medium'>List</p>
+                  </div>
+                </TabsTrigger>
 
-            <div className='flex items-center gap-x-2 p-2 rounded-lg cursor-pointer shadow-md border border-primary'>
-              <BiLogOut size={24} />
-              <p className='font-medium'>Logout</p>
-            </div>
+                <TabsTrigger value='password'>
+                  <div className='flex items-center gap-x-2'>
+                    <img
+                      src='/login/Vector.png'
+                      alt='Board Icon'
+                      className='w-4 h-4'
+                    />
+                    <p className='text-lg font-medium'>Board</p>
+                  </div>
+                </TabsTrigger>
+              </div>
+
+              {/* Right Side - User Info */}
+              {user ? (
+                <div className='flex items-center gap-x-3 p-3 rounded-lg cursor-pointer shadow-lg mb-10 ml-auto bg-white '>
+                  {/* User Avatar */}
+                  {/* <img
+                    src={user.photoURL || '/default-user.png'}
+                    alt='User Avatar'
+                    className='w-10 h-10 rounded-full border border-gray-300'
+                  /> */}
+
+                  {/* User Info and Logout Button */}
+                  <div className='flex flex-col'>
+                    <p className='font-medium'>{user.displayName || 'User'}</p>
+                    <button
+                      onClick={logout}
+                      className='flex items-center gap-x-2 text-red-500 font-medium hover:text-red-700 transition-all'
+                    >
+                      <BiLogOut size={20} />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  to='/auth/login'
+                  className='bg-blue-500 text-white px-4 py-2 rounded-full font-semibold ml-auto shadow-md transition-all hover:bg-blue-600'
+                >
+                  Logged In
+                </Link>
+              )}
+            </TabsList>
 
             {/* Filter Section */}
             <div className='mt-4 w-full flex justify-between items-center px-3'>
@@ -163,18 +190,10 @@ function Index() {
                     <SelectItem value='personal'>PERSONAL</SelectItem>
                   </SelectContent>
                 </Select>
-                {/* <Select>
-                  <SelectTrigger className='w-[120px] rounded-3xl'>
-                    <SelectValue placeholder='Due Date' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <input type='date' className='p-2 w-full' />
-                  </SelectContent>
-                </Select> */}
                 <Input
                   type='date'
                   placeholder='Due Date'
-                  {...form.register('duedate', {
+                  {...register('duedate', {
                     required: 'Due Date is required',
                   })}
                   className='border p-2 rounded-lg w-40 mt-1'
@@ -188,6 +207,8 @@ function Index() {
                   <Input
                     placeholder='Search'
                     className='pl-10 w-52 h-10 border rounded-full'
+                    onChange={handleSearchChange}
+                    value={searchQuery}
                   />
                 </div>
 
@@ -196,7 +217,7 @@ function Index() {
                     ADD TASK
                   </AlertDialogTrigger>
 
-                  <AlertDialogContent className='max-w-[600px] w-full p-6 rounded-lg shadow-lg'>
+                  <AlertDialogContent className='max-w-[800px] h-[750px] p-6 rounded-lg shadow-lg'>
                     {/* Modal Header */}
                     <div className='flex justify-between items-center border-b pb-3'>
                       <AlertDialogTitle className='text-xl font-semibold'>
@@ -209,7 +230,7 @@ function Index() {
 
                     <AlertDialogDescription className='mt-4'>
                       <form
-                        onSubmit={form.handleSubmit(onSubmit)}
+                        onSubmit={handleSubmit(onSubmit)}
                         className='space-y-5'
                       >
                         {/* Task Title Input */}
@@ -219,20 +240,35 @@ function Index() {
                           </Label>
                           <Input
                             placeholder='Enter task title...'
-                            {...form.register('name', {
-                              required: 'Task Title is required',
-                            })}
+                            {...register('name')}
                             className='w-full mt-1 border-gray-300 rounded-lg'
                           />
-                          {form.formState.errors.name && (
+                          {errors.name && (
                             <p className='text-red-500 text-sm mt-1'>
-                              {form.formState.errors.name.message}
+                              {errors.name.message}
                             </p>
                           )}
                         </div>
 
-                        {/* Category, Due Date, and Status (All in One Line) */}
-                        <div className='flex items-center gap-4'>
+                        {/* Task Description Input */}
+                        <div>
+                          <Label className='text-sm font-medium'>
+                            Task Description
+                          </Label>
+                          <textarea
+                            {...register('description')}
+                            className='w-full mt-1 border-gray-300 border rounded-lg p-2'
+                            rows={4}
+                          />
+                          {errors.description && (
+                            <p className='text-red-500 text-sm mt-1'>
+                              {errors.description.message}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Task Category, Due Date, and Status */}
+                        <div className='flex items-center gap-4 py-4'>
                           {/* Task Category */}
                           <div className='flex-1'>
                             <Label className='text-sm font-medium'>
@@ -244,23 +280,24 @@ function Index() {
                                   key={category}
                                   type='button'
                                   className={`border w-24 p-2 rounded-full transition-colors ${
-                                    form.watch('category') === category
-                                      ? 'bg-primary text-white'
+                                    watch('category') === category
+                                      ? 'bg-[#7B1984] text-white'
                                       : 'bg-gray-100'
                                   }`}
                                   onClick={() =>
-                                    form.setValue('category', category as any, {
-                                      shouldValidate: true,
-                                    })
+                                    setValue(
+                                      'category',
+                                      category as 'WORK' | 'PERSONAL'
+                                    )
                                   }
                                 >
                                   {category}
                                 </button>
                               ))}
                             </div>
-                            {form.formState.errors.category && (
+                            {errors.category && (
                               <p className='text-red-500 text-sm mt-1'>
-                                {form.formState.errors.category.message}
+                                {errors.category.message}
                               </p>
                             )}
                           </div>
@@ -272,14 +309,12 @@ function Index() {
                             </Label>
                             <Input
                               type='date'
-                              {...form.register('duedate', {
-                                required: 'Due Date is required',
-                              })}
+                              {...register('duedate')}
                               className='border p-2 rounded-lg mt-1'
                             />
-                            {form.formState.errors.duedate && (
+                            {errors.duedate && (
                               <p className='text-red-500 text-sm mt-1'>
-                                {form.formState.errors.duedate.message}
+                                {errors.duedate.message}
                               </p>
                             )}
                           </div>
@@ -290,12 +325,17 @@ function Index() {
                               Task Status
                             </Label>
                             <Select
-                              onValueChange={(value) =>
-                                form.setValue('status', value as any, {
-                                  shouldValidate: true,
-                                })
+                              onValueChange={(value: string) =>
+                                setValue(
+                                  'status',
+                                  value as
+                                    | 'TODO'
+                                    | 'IN-PROGRESS'
+                                    | 'COMPLETED'
+                                    | undefined
+                                )
                               }
-                              value={form.watch('status')}
+                              value={watch('status')}
                             >
                               <SelectTrigger className='w-full mt-1 border-gray-300 rounded-lg'>
                                 <SelectValue placeholder='Choose' />
@@ -310,26 +350,31 @@ function Index() {
                                 </SelectItem>
                               </SelectContent>
                             </Select>
-                            {form.formState.errors.status && (
+                            {errors.status && (
                               <p className='text-red-500 text-sm mt-1'>
-                                {form.formState.errors.status.message}
+                                {errors.status.message}
                               </p>
                             )}
                           </div>
                         </div>
 
+                        {/* File Upload Section */}
+                        <FileUpload />
+
                         {/* Footer Buttons */}
-                        <AlertDialogFooter className='mt-4 flex justify-end gap-3'>
-                          <AlertDialogCancel className='border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-100'>
-                            Cancel
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            type='submit'
-                            className='bg-primary text-white px-4 py-2 rounded-md'
-                          >
-                            Continue
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
+                        <div className='mt-8'>
+                          <AlertDialogFooter className='flex justify-end gap-3'>
+                            <AlertDialogCancel className='border px-4 py-2 rounded-full'>
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              type='submit'
+                              className='bg-primary text-white px-6 py-2 rounded-full bg-[#7B1984]'
+                            >
+                              Create
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </div>
                       </form>
                     </AlertDialogDescription>
                   </AlertDialogContent>
@@ -345,22 +390,7 @@ function Index() {
               </TabsContent>
 
               <TabsContent value='password'>
-                <h2 className='text-lg font-semibold mb-4'>Manage Board</h2>
-                <p className='text-gray-500'>Change your password here.</p>
-                {/* {Array.isArray(FetchData.data) && FetchData.data.length > 0 ? (
-                  <div className='mt-4'>
-                    {FetchData.data.map((user) => (
-                      <div key={user.id} className='mb-4'>
-                        <h3 className='font-semibold'>{user.name}</h3>
-                        <p>{user.duedate}</p>
-                        <p>{user.category}</p>
-                        <p>{user.status}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p>No users found.</p>
-                )} */}
+                <BoardTableData searchQuery={searchQuery} />
               </TabsContent>
             </div>
           </Tabs>
